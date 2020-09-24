@@ -138,14 +138,10 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
         if (drop_all) {
             // there were some full rows, so drop all the pieces
             var lines: usize = highest_emptied_row - lowest_emptied_row + 1;
-            while (lowest_emptied_row < board_rows - 1) : (lowest_emptied_row += 1) {
+            while (lowest_emptied_row + lines < board_rows - 1) : (lowest_emptied_row += 1) {
                 var col: usize = 0;
                 while (col < board_cols) : (col += 1) {
-                    if (lowest_emptied_row + lines < board_rows - 1) {
-                        // TODO:fix this; maybe just add 4 more rows to the board so we don't go out of bounds
-                        // or handle this in the outer loop? I don't think we miss anything
-                        board[lowest_emptied_row][col] = board[lowest_emptied_row + lines][col];
-                    }
+                    board[lowest_emptied_row][col] = board[lowest_emptied_row + lines][col];
                 }
             }
         }
@@ -295,9 +291,8 @@ fn random_u32() u32 {
     return result;
 }
 
-const MAX_U32: f32 = 4294967295.0; // TODO: there must be a built in for this?
 fn random_unilateral() f32 {
-    return @intToFloat(f32, random_u32()) / MAX_U32;
+    return @intToFloat(f32, random_u32()) / @intToFloat(f32, std.math.maxInt(u32));
 }
 
 fn random_bilateral() f32 {
