@@ -129,18 +129,14 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
                     lowest_emptied_row = r;
                 }
                 for (board[r]) |cell, c| {
-                    var color = board[r][c];
+                    var color = board[r][c].Occupied;
                     board[r][c] = Cell{ .Empty = 0x0 };
-
-                    // TODO: almost working - explosion is on the left only
-                    const pos = Vec2f.init(board_left + @intToFloat(f32, c) * block_half_width.x, @intToFloat(f32, (2 * r)) * block_half_width.x + board_bottom);
-                    spawnParticleExplosion(20, pos, block_half_width.x / 2.0, 1.5, 0.15, color.Occupied);
+                    spawnParticleExplosion(30, get_board_pos(r, c), 8.0, 1.0, 0.15, color);
                 }
             }
         }
         if (drop_all) {
             // there were some full rows, so drop all the pieces
-            // TODO: this doesn't quite work yet. make two lines and only move down one. needs to keep falling
             var lines: usize = highest_emptied_row - lowest_emptied_row + 1;
             while (lowest_emptied_row < board_rows - 1) : (lowest_emptied_row += 1) {
                 var col: usize = 0;
@@ -158,7 +154,6 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
     // render board and pieces
     for (board) |row, row_index| {
         for (row) |cell, column_index| {
-            const pos = Vec2f.init(board_left + @intToFloat(f32, 2 * column_index) * block_half_width.x, @intToFloat(f32, (2 * row_index)) * block_half_width.x + board_bottom);
             var block_size: Vec2f = undefined;
             if (row_index == 0 or column_index == 0 or column_index == board_cols - 1) {
                 block_size = block_half_width;
@@ -169,12 +164,11 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
                 .Empty => |color| color,
                 .Occupied => |color| color,
             };
-            render.drawRect(buffer, pos, block_size, cell_color);
+            render.drawRect(buffer, get_board_pos(row_index, column_index), block_size, cell_color);
         }
     }
 
     // render particles
-
     for (particles) |*p| {
         if (p.life <= 0) continue;
         p.life -= p.life_d * input.dt_for_frame;
@@ -182,6 +176,10 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
 
         render.drawTransparentRect(buffer, p.p, p.half_size, p.color, p.life);
     }
+}
+
+fn get_board_pos(row: usize, column: usize) Vec2f {
+    return Vec2f.init(board_left + @intToFloat(f32, 2 * column) * block_half_width.x, @intToFloat(f32, (2 * row)) * block_half_width.x + board_bottom);
 }
 
 var particle_y: f32 = -30;
