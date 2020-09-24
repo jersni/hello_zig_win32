@@ -1,0 +1,9 @@
+*.exe
+*.pdb
+*.obj
+.vs/*
+*.sln
+zig-cache/*
+build/*
+*~
+NUL
