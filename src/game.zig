@@ -15,6 +15,8 @@ var piece_row: usize = board_rows;
 var piece_col: usize = 4;
 var new_piece: bool = true;
 var game_over: bool = false;
+var score: i32 = 0;
+const score_p: Vec2f = Vec2f.init(board_left + @intToFloat(f32, board_cols) * block_half_width.x * 2 + 20, 20);
 
 var drop_interval: f32 = 0.25;
 var drop_t: f32 = 0.25;
@@ -24,6 +26,8 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
     drop_t -= input.dt_for_frame;
 
     render.clearScreen(buffer, BACKGROUND);
+
+    render.drawNumber(buffer, score, score_p, 5.0, 0xffffff);
     // TODO: only need fill in the borders once
     for (board) |row, row_index| {
         for (row) |_, column_index| {
@@ -144,6 +148,7 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
                     board[lowest_emptied_row][col] = board[lowest_emptied_row + lines][col];
                 }
             }
+            score += get_score(lines);
         }
     }
 
@@ -172,6 +177,20 @@ pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void 
 
         render.drawTransparentRect(buffer, p.p, p.half_size, p.color, p.life);
     }
+}
+
+fn get_score(lines: usize) i32 {
+    var result: i32 = 0;
+    if (lines == 1) {
+        result = 40;
+    } else if (lines == 2) {
+        result = 100;
+    } else if (lines == 3) {
+        result = 30;
+    } else if (lines == 4) {
+        result = 1200;
+    }
+    return result;
 }
 
 fn get_board_pos(row: usize, column: usize) Vec2f {
