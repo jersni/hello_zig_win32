@@ -179,6 +179,9 @@ pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
 
         render.drawTransparentRect(buffer, p.p, p.half_size, p.color, p.life);
     }
+
+    // TODO: debug
+    //render.drawTransparentRotatedRect(buffer, .{ .x = -30, .y = 0 }, .{ .x = 20, .y = 20 }, 30, 0xff0000, 0.5);
 }
 
 fn get_score(lines: usize) i32 {

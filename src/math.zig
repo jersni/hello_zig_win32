@@ -15,8 +15,16 @@ fn Vec2(comptime T: type) type {
             return Self.init(self.x + other.x, self.y + other.y);
         }
 
+        pub fn sub(self: Self, other: Self) Self {
+            return Self.init(self.x - other.x, self.y - other.y);
+        }
+
         pub fn mul(self: Self, s: f32) Self {
             return Self.init(self.x * s, self.y * s);
+        }
+
+        pub fn dot(self: Self, other: Self) T {
+            return self.x * other.x + self.y * other.y;
         }
     };
 }
@@ -52,4 +60,20 @@ fn random_unilateral() f32 {
 
 pub fn random_bilateral() f32 {
     return random_unilateral() * 2.0 - 1.0;
+}
+
+pub fn cosf(angle_r: f32) f32 {
+    return std.math.cos(angle_r);
+}
+
+pub fn sinf(angle_r: f32) f32 {
+    return std.math.sin(angle_r);
+}
+
+pub fn trunc_f32(v: f32) i32 {
+    return @floatToInt(i32, v);
+}
+
+pub fn ceil_f32(v: f32) i32 {
+    return trunc_f32(std.math.ceil(v));
 }
