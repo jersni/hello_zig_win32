@@ -1,9 +1,11 @@
-const common = @import("./platform_common.zig");
-const Vec2f = @import("./platform_common.zig").Vec2f;
-const Vec2i = @import("./platform_common.zig").Vec2i;
 const render = @import("./render.zig");
 const std = @import("std");
-const math = std.math;
+const math = @import("./math.zig");
+const common = @import("./platform_common.zig");
+const GameRenderBuffer = common.GameRenderBuffer;
+const GameInput = common.GameInput;
+const Vec2f = math.Vec2f;
+const Vec2i = math.Vec2i;
 
 const Piece = @import("pieces.zig").Piece;
 
@@ -21,7 +23,7 @@ const score_p: Vec2f = Vec2f.init(board_left + @intToFloat(f32, board_cols) * bl
 var drop_interval: f32 = 0.25;
 var drop_t: f32 = 0.25;
 var control_delay: f32 = 0;
-pub fn simulate(buffer: common.GameRenderBuffer, input: *common.GameInput) void {
+pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
     control_delay += input.dt_for_frame;
     drop_t -= input.dt_for_frame;
 
@@ -217,15 +219,7 @@ fn can_move(the_piece: Piece, start_row: usize, start_col: usize, rotation: usiz
 }
 
 fn randomPiece() usize {
-    var buf: [8]u8 = undefined;
-    std.crypto.randomBytes(buf[0..]) catch |err| {
-        std.debug.warn("error {}\n", .{err});
-    };
-
-    const seed = std.mem.readIntLittle(u64, buf[0..8]);
-    var r = std.rand.DefaultPrng.init(seed);
-    const s = r.random.int(usize);
-    return std.rand.limitRangeBiased(usize, s, 6);
+    return math.random_in_range(usize, 0, pieces.len - 1);
 }
 
 const board_half_draw = Vec2f.init(block_half_width.x * 0.95, block_half_width.y * 0.95);
@@ -247,9 +241,7 @@ const block_half_draw = Vec2f.init(block_half_width.x * 0.85, block_half_width.y
 const units_per_dt = block_half_width.x * 2;
 
 // TODO:
-// * look in to rotation; overrotates
 // * falling, speed up as time goes on
-// * scoring
 // * https://www.playemulator.com/nes-online/classic-tetris/
 
 const Particle = struct {
@@ -280,7 +272,7 @@ fn spawnParticle(p: Vec2f, dp_scale: f32, half_size: Vec2f, life: f32, life_d: f
     if (next_particle >= particles.len) next_particle = 0;
 
     particle.p = p;
-    particle.dp = Vec2f.init(random_bilateral() * dp_scale, random_bilateral() * dp_scale);
+    particle.dp = Vec2f.init(math.random_bilateral() * dp_scale, math.random_bilateral() * dp_scale);
     particle.half_size = half_size;
     particle.life = life;
     particle.life_d = life_d;
@@ -294,26 +286,8 @@ fn spawnParticleExplosion(count: i32, p: Vec2f, dp_scale: f32, base_size: f32, b
     var bs: f32 = base_size;
     var bl: f32 = base_life;
     while (i < count) : (i += 1) {
-        bs += random_bilateral() * 0.1 * bs;
-        bl += random_bilateral() * 0.1 * bs;
+        bs += math.random_bilateral() * 0.1 * bs;
+        bl += math.random_bilateral() * 0.1 * bl;
         var particle = spawnParticle(p, dp_scale, Vec2f.init(bs, bs), bl, 1.0, color);
     }
-}
-
-var random_state: u32 = 1234; // TODO: Change the seed to be unique per game-run
-fn random_u32() u32 {
-    var result: u32 = random_state;
-    result ^= result << 13;
-    result ^= result >> 17;
-    result ^= result << 5;
-    random_state = result;
-    return result;
-}
-
-fn random_unilateral() f32 {
-    return @intToFloat(f32, random_u32()) / @intToFloat(f32, std.math.maxInt(u32));
-}
-
-fn random_bilateral() f32 {
-    return random_unilateral() * 2.0 - 1.0;
 }

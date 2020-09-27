@@ -4,28 +4,6 @@ pub const GameRenderBuffer = struct {
     memory: []u32,
 };
 
-fn Vec2(comptime T: type) type {
-    return struct {
-        const Self = @This();
-        x: T,
-        y: T,
-        pub fn init(x: T, y: T) Self {
-            return Self{ .x = x, .y = y };
-        }
-
-        pub fn add(self: Self, other: Self) Self {
-            return Self.init(self.x + other.x, self.y + other.y);
-        }
-
-        pub fn mul(self: Self, s: f32) Self {
-            return Self.init(self.x * s, self.y * s);
-        }
-    };
-}
-
-pub const Vec2f = Vec2(f32);
-pub const Vec2i = Vec2(i32);
-
 pub const GameButtonState = packed struct {
     half_transition_count: i32 = 0,
     ended_down: bool = false,
