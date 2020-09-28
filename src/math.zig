@@ -62,6 +62,8 @@ pub fn random_bilateral() f32 {
     return random_unilateral() * 2.0 - 1.0;
 }
 
+pub const pi = std.math.pi;
+
 pub fn cosf(angle_r: f32) f32 {
     return std.math.cos(angle_r);
 }

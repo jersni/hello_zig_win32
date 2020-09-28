@@ -280,7 +280,7 @@ fn make_rect_center_half_size(c: Vec2f, h: Vec2f) Rect2 {
 }
 
 fn deg_to_rad(angle: f32) f32 {
-    return angle * (3.14 / 180.0);
+    return angle * (math.pi / 180.0);
 }
 
 const std = @import("std");
@@ -365,7 +365,6 @@ pub fn drawTransparentRotatedRect(buffer: GameRenderBuffer, p: Vec2f, half_size:
     {
         var y = min_bound.y;
         while (y < max_bound.y) : (y += 1) {
-            //u32 *pixel = render_buffer.pixels + min_bound.x + render_buffer.width*y;
             var x = min_bound.x;
             while (x < max_bound.x) : (x += 1) {
                 var pixel_p: Vec2f = .{ .x = @intToFloat(f32, x), .y = @intToFloat(f32, y) };
@@ -385,8 +384,8 @@ pub fn drawTransparentRotatedRect(buffer: GameRenderBuffer, p: Vec2f, half_size:
                     proj_2 >= 0 and
                     proj_3 >= 0)
                 {
-                    var loc: usize = @intCast(u32, min_bound.x) + buffer.width * @intCast(u32, y);
-                    buffer.memory[loc] = lerpColor(buffer.memory[loc], alpha, color);
+                    var loc: usize = @intCast(usize, x + @intCast(i32,buffer.width) * y);
+                    buffer.memory[loc] = lerpColor(buffer.memory[loc], alpha_c, color);
                 }
 
                 // pixel++;

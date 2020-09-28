@@ -181,8 +181,12 @@ pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
     }
 
     // TODO: debug
-    //render.drawTransparentRotatedRect(buffer, .{ .x = -30, .y = 0 }, .{ .x = 20, .y = 20 }, 30, 0xff0000, 0.5);
+    render.drawNumber(buffer, @mod(@floatToInt(i32, angle), 360), .{ .x = -30, .y = 20 }, 5, 0x00ff00);
+    render.drawTransparentRotatedRect(buffer, .{ .x = -30, .y = 0 }, .{ .x = 5, .y = 5 }, angle, 0xff0000, 0.5);
+    angle += input.dt_for_frame * 5;
 }
+
+var angle: f32 = 0;
 
 fn get_score(lines: usize) i32 {
     var result: i32 = 0;
