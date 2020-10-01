@@ -181,9 +181,11 @@ pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
     }
 
     // TODO: debug
+    var mouse_loc = render.pixels_to_world(buffer, Vec2i.init(input.mouse_x, input.mouse_y));
     render.drawNumber(buffer, @mod(@floatToInt(i32, angle), 360), .{ .x = -30, .y = 20 }, 5, 0x00ff00);
-    render.drawTransparentRotatedRect(buffer, .{ .x = -30, .y = 0 }, .{ .x = 5, .y = 5 }, angle, 0xff0000, 0.5);
-    angle += input.dt_for_frame * 5;
+    render.drawTransparentRotatedRect(buffer, mouse_loc.add(.{ .x = 10, .y = 20 }), .{ .x = 5, .y = 5 }, angle, 0xff0000, 0.45);
+    render.drawTransparentRotatedRect(buffer, mouse_loc, .{ .x = 2.5, .y = 2.5 }, -angle, 0x00ff00, 0.25);
+    angle += input.dt_for_frame * 100;
 }
 
 var angle: f32 = 0;
@@ -226,7 +228,7 @@ fn can_move(the_piece: Piece, start_row: usize, start_col: usize, rotation: usiz
 }
 
 fn randomPiece() usize {
-    return math.random_in_range(usize, 0, pieces.len - 1);
+    return math.randomInRange(usize, 0, pieces.len - 1);
 }
 
 const board_half_draw = Vec2f.init(block_half_width.x * 0.95, block_half_width.y * 0.95);
@@ -279,7 +281,7 @@ fn spawnParticle(p: Vec2f, dp_scale: f32, half_size: Vec2f, life: f32, life_d: f
     if (next_particle >= particles.len) next_particle = 0;
 
     particle.p = p;
-    particle.dp = Vec2f.init(math.random_bilateral() * dp_scale, math.random_bilateral() * dp_scale);
+    particle.dp = Vec2f.init(math.randomBilateral() * dp_scale, math.randomBilateral() * dp_scale);
     particle.half_size = half_size;
     particle.life = life;
     particle.life_d = life_d;
@@ -293,8 +295,8 @@ fn spawnParticleExplosion(count: i32, p: Vec2f, dp_scale: f32, base_size: f32, b
     var bs: f32 = base_size;
     var bl: f32 = base_life;
     while (i < count) : (i += 1) {
-        bs += math.random_bilateral() * 0.1 * bs;
-        bl += math.random_bilateral() * 0.1 * bl;
+        bs += math.randomBilateral() * 0.1 * bs;
+        bl += math.randomBilateral() * 0.1 * bl;
         var particle = spawnParticle(p, dp_scale, Vec2f.init(bs, bs), bl, 1.0, color);
     }
 }

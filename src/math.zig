@@ -35,7 +35,7 @@ pub const Vec2i = Vec2(i32);
 // pseudo random numbers
 
 var random_state: u32 = 0;
-fn random_u32() u32 {
+fn randomu32() u32 {
     if (random_state == 0) {
         random_state = @intCast(u32, std.math.absInt(@truncate(i32, std.time.milliTimestamp())) catch 10);
     }
@@ -47,19 +47,19 @@ fn random_u32() u32 {
     return result;
 }
 
-pub fn random_in_range(comptime T: type, min: T, max: T) T { //inclusive
+pub fn randomInRange(comptime T: type, min: T, max: T) T { //inclusive
     const range = max - min + 1;
-    var result: T = random_u32() % range;
+    var result: T = randomu32() % range;
     result += min;
     return result;
 }
 
-fn random_unilateral() f32 {
-    return @intToFloat(f32, random_u32()) / @intToFloat(f32, std.math.maxInt(u32));
+fn randomUnilateral() f32 {
+    return @intToFloat(f32, randomu32()) / @intToFloat(f32, std.math.maxInt(u32));
 }
 
-pub fn random_bilateral() f32 {
-    return random_unilateral() * 2.0 - 1.0;
+pub fn randomBilateral() f32 {
+    return randomUnilateral() * 2.0 - 1.0;
 }
 
 pub const pi = std.math.pi;
@@ -72,10 +72,14 @@ pub fn sinf(angle_r: f32) f32 {
     return std.math.sin(angle_r);
 }
 
-pub fn trunc_f32(v: f32) i32 {
+pub fn truncf32(v: f32) i32 {
     return @floatToInt(i32, v);
 }
 
-pub fn ceil_f32(v: f32) i32 {
+pub fn ceil32(v: f32) i32 {
     return trunc_f32(std.math.ceil(v));
+}
+
+pub fn degToRad(angle: f32) f32 {
+    return angle * (std.math.pi / 180.0);
 }
