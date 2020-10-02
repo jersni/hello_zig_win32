@@ -150,7 +150,7 @@ pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
                     board[lowest_emptied_row][col] = board[lowest_emptied_row + lines][col];
                 }
             }
-            score += get_score(lines);
+            score += getScore(lines);
         }
     }
 
@@ -177,20 +177,16 @@ pub fn simulate(buffer: GameRenderBuffer, input: *GameInput) void {
         p.life -= p.life_d * input.dt_for_frame;
         p.p = p.p.add(p.dp.mul(input.dt_for_frame));
 
-        render.drawTransparentRect(buffer, p.p, p.half_size, p.color, p.life);
+        // render.drawTransparentRect(buffer, p.p, p.half_size, p.color, p.life);
+        render.drawTransparentRotatedRect(buffer, p.p, p.half_size, 45, p.color, p.life);
     }
 
-    // TODO: debug
-    var mouse_loc = render.pixels_to_world(buffer, Vec2i.init(input.mouse_x, input.mouse_y));
-    render.drawNumber(buffer, @mod(@floatToInt(i32, angle), 360), .{ .x = -30, .y = 20 }, 5, 0x00ff00);
-    render.drawTransparentRotatedRect(buffer, mouse_loc.add(.{ .x = 10, .y = 20 }), .{ .x = 5, .y = 5 }, angle, 0xff0000, 0.45);
-    render.drawTransparentRotatedRect(buffer, mouse_loc, .{ .x = 2.5, .y = 2.5 }, -angle, 0x00ff00, 0.25);
-    angle += input.dt_for_frame * 100;
+    var offset: f32 = 5;
+    var size = Vec2f.init(2, 2);
+    //render.drawTransparentRotatedRect(buffer, mouse_loc.add(.{ .x = offset, .y = 0 }), size, 30.0, 0x00ff00, 0.25);
 }
 
-var angle: f32 = 0;
-
-fn get_score(lines: usize) i32 {
+fn getScore(lines: usize) i32 {
     var result: i32 = 0;
     if (lines == 1) {
         result = 40;

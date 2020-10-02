@@ -259,27 +259,61 @@ pub fn drawTransparentRotatedRect(buffer: GameRenderBuffer, p: Vec2f, half_size:
     var x_axis: Vec2f = Vec2f.init(cos, sin).mul(half_size.x * 2);
     var y_axis: Vec2f = Vec2f.init(-sin, cos).mul(half_size.y * 2);
 
-    var dim = Vec2f.init(0.5, 0.5);
+    drawRectSlow(buffer, p, x_axis, y_axis, color, alpha_c);
+}
 
-    var c = lerpColor(0, alpha_c, color);
-    drawRect(buffer, p, dim, c);
-    drawRect(buffer, p.add(x_axis), dim, c);
-    drawRect(buffer, p.add(y_axis), dim, c);
+pub fn drawRectSlow(buffer: GameRenderBuffer, origin: Vec2f, xAxis: Vec2f, yAxis: Vec2f, color: u32, alpha: f32) void {
+    const aspect_multiplier = calculateAspectMultipler(buffer);
 
-    var index: usize = 0;
-    var points: [25]Vec2f = undefined;
-    var y: f32 = 0;
-    while (y <= 1.0) : (y += 0.25) {
-        var x: f32 = 0;
-        while (x <= 1.0) : (x += 0.25) {
-            points[index] = .{ .x = x, .y = y };
-            index += 1;
-        }
+    var pOrigin = origin.mul(aspect_multiplier * scale);
+    var pxAxis = xAxis.mul(aspect_multiplier * scale);
+    var pyAxis = yAxis.mul(aspect_multiplier * scale);
+
+    var offset = Vec2f.init(@intToFloat(f32, buffer.width) * 0.5, @intToFloat(f32, buffer.height) * 0.5);
+
+    pOrigin = pOrigin.add(offset);
+
+    var width = @intCast(i32, buffer.width);
+    var height = @intCast(i32, buffer.height);
+
+    var xMin: i32 = width;
+    var xMax: i32 = 0;
+    var yMin: i32 = height;
+    var yMax: i32 = 0;
+
+    var points = [4]Vec2f{ pOrigin, pOrigin.add(pxAxis), pOrigin.add(pxAxis).add(pyAxis), pOrigin.add(pyAxis) };
+    for (points) |p| {
+        var fx = math.truncf32(p.x);
+        var cx = math.ceil32(p.x);
+        var fy = math.truncf32(p.y);
+        var cy = math.ceil32(p.y);
+
+        if (xMin > fx) xMin = fx;
+        if (yMin > fy) yMin = fy;
+        if (xMax < cx) xMax = cx;
+        if (yMax < cy) yMax = cy;
     }
 
-    for (points) |pt| {
-        var curr_pt = pt;
-        curr_pt = p.add(x_axis.mul(curr_pt.x).add(y_axis.mul(curr_pt.y)));
-        drawRect(buffer, curr_pt, dim, c);
+    if (xMin < 0) xMin = 0;
+    if (yMin < 0) yMin = 0;
+    if (xMax > width) xMax = width;
+    if (yMax > height) yMax = height;
+
+    var y = @intCast(u32, yMin);
+    while (y < yMax) : (y += 1) {
+        var x = @intCast(u32, xMin);
+        while (x < xMax) : (x += 1) {
+            var pixelP = Vec2f.init(@intToFloat(f32, x), @intToFloat(f32, y));
+
+            var edge0 = pixelP.sub(pOrigin).dot(pxAxis.perp().neg());
+            var edge1 = pixelP.sub(pOrigin.add(pxAxis)).dot(pyAxis.perp().neg());
+            var edge2 = pixelP.sub(pOrigin.add(pxAxis).add(pyAxis)).dot(pxAxis.perp());
+            var edge3 = pixelP.sub(pOrigin.add(pyAxis)).dot(pyAxis.perp());
+
+            if (edge0 < 0 and edge1 < 0 and edge2 < 0 and edge3 < 0) {
+                var c = lerpColor(buffer.memory[x + y * buffer.width], alpha, color);
+                buffer.memory[x + y * buffer.width] = c;
+            }
+        }
     }
 }

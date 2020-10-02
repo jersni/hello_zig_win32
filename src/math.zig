@@ -26,6 +26,14 @@ fn Vec2(comptime T: type) type {
         pub fn dot(self: Self, other: Self) T {
             return self.x * other.x + self.y * other.y;
         }
+
+        pub fn perp(self: Self) Self {
+            return Self.init(-self.y, self.x);
+        }
+
+        pub fn neg(self: Self) Self {
+            return Self.init(-self.x, -self.y);
+        }
     };
 }
 
@@ -77,7 +85,7 @@ pub fn truncf32(v: f32) i32 {
 }
 
 pub fn ceil32(v: f32) i32 {
-    return trunc_f32(std.math.ceil(v));
+    return truncf32(std.math.ceil(v));
 }
 
 pub fn degToRad(angle: f32) f32 {
