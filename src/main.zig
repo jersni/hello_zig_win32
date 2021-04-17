@@ -37,13 +37,6 @@ const VREFRESH = 116;
 
 const TIMERR_NOERROR = 0;
 
-const RECT = extern struct {
-    left: LONG,
-    top: LONG,
-    right: LONG,
-    bottom: LONG,
-};
-
 const RGBQUAD = extern struct {
     rgbBlue: BYTE,
     rgbGreen: BYTE,
@@ -70,21 +63,17 @@ const BITMAPINFO = extern struct {
     bmiColors: [1]RGBQUAD,
 };
 
-const POINT = extern struct {
-    x: LONG,
-    y: LONG,
-};
 pub const LPPOINT = [*c]POINT;
 
-extern "kernel32" fn GetModuleHandleA(lpModuleName: ?LPCTSTR) callconv(.Stdcall) HINSTANCE;
-extern "user32" fn GetClientRect(hwnd: HWND, lpRect: *RECT) callconv(.Stdcall) BOOL;
-extern "user32" fn GetCursorPos(lpPoint: LPPOINT) callconv(.Stdcall) BOOL;
-extern "user32" fn ScreenToClient(hWnd: HWND, lpPoint: LPPOINT) callconv(.Stdcall) BOOL;
-extern "user32" fn GetKeyState(nVirtKey: c_int) callconv(.Stdcall) SHORT;
-extern "gdi32" fn StretchDIBits(hdc: HDC, xDest: c_int, yDest: c_int, DestWidth: c_int, DestHeight: c_int, xSrc: c_int, ySrc: c_int, SrcWidth: c_int, SrcHeight: c_int, lpBits: ?*const c_void, lpbmi: [*c]const BITMAPINFO, iUsage: UINT, rop: DWORD) callconv(.Stdcall) c_int;
-extern "gdi32" fn GetDeviceCaps(hdc: HDC, index: c_int) callconv(.Stdcall) c_int;
-extern "winmm" fn timeBeginPeriod(uPeriod: c_uint) callconv(.Stdcall) c_uint;
-extern "kernel32" fn Sleep(dwMilliseconds: DWORD) callconv(.Stdcall) void;
+extern "kernel32" fn GetModuleHandleA(lpModuleName: ?LPCTSTR) callconv(WINAPI) HINSTANCE;
+extern "user32" fn GetClientRect(hwnd: HWND, lpRect: *RECT) callconv(WINAPI) BOOL;
+extern "user32" fn GetCursorPos(lpPoint: LPPOINT) callconv(WINAPI) BOOL;
+extern "user32" fn ScreenToClient(hWnd: HWND, lpPoint: LPPOINT) callconv(WINAPI) BOOL;
+extern "user32" fn GetKeyState(nVirtKey: c_int) callconv(WINAPI) SHORT;
+extern "gdi32" fn StretchDIBits(hdc: HDC, xDest: c_int, yDest: c_int, DestWidth: c_int, DestHeight: c_int, xSrc: c_int, ySrc: c_int, SrcWidth: c_int, SrcHeight: c_int, lpBits: ?*const c_void, lpbmi: [*c]const BITMAPINFO, iUsage: UINT, rop: DWORD) callconv(WINAPI) c_int;
+extern "gdi32" fn GetDeviceCaps(hdc: HDC, index: c_int) callconv(WINAPI) c_int;
+extern "winmm" fn timeBeginPeriod(uPeriod: c_uint) callconv(WINAPI) c_uint;
+extern "kernel32" fn Sleep(dwMilliseconds: DWORD) callconv(WINAPI) void;
 
 const RenderBuffer = struct {
     width: LONG,
@@ -105,8 +94,8 @@ var global_render_buffer = RenderBuffer{
 var running = true;
 var global_perf_count_frequency: u64 = 0;
 
-fn wndProc(window: HWND, message: c_uint, w_param: usize, l_param: LRESULT) callconv(.Stdcall) LRESULT {
-    var result: LRESULT = null;
+fn wndProc(window: HWND, message: c_uint, w_param: usize, l_param: LRESULT) callconv(WINAPI) LRESULT {
+    var result: LRESULT = 0;
     switch (message) {
         user32.WM_DESTROY, user32.WM_CLOSE => {
             running = false;
@@ -277,22 +266,18 @@ pub fn main() void {
 
 fn processPendingMessages(keyboard_controller: *common.GameControllerInput) void {
     var message: user32.MSG = undefined;
-    while (user32.PeekMessageA(&message, null, 0, 0, user32.PM_REMOVE)) {
+    while (user32.PeekMessageA(&message, null, 0, 0, user32.PM_REMOVE) != 0) {
         switch (message.message) {
             user32.WM_QUIT => {
                 running = false;
             },
             WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP => {
                 var vk_code: usize = message.wParam;
-                var lParam: u64 = 0;
-                if (message.lParam) |v| {
-                    lParam = @ptrToInt(v);
-                }
 
                 const previous_state_flag: u64 = 1 << 30;
                 const transition_flag: u64 = 1 << 31;
-                var was_down = (lParam & previous_state_flag) != 0;
-                var is_down = (lParam & transition_flag) == 0;
+                var was_down = (message.lParam & previous_state_flag) != 0;
+                var is_down = (message.lParam & transition_flag) == 0;
 
                 if (was_down != is_down) {
                     switch (vk_code) {

@@ -148,8 +148,7 @@ pub fn drawNumber(buffer: GameRenderBuffer, number: i32, pos: Vec2f, size: f32, 
         digit = @mod(curr_number, 10);
     }
 }
-
-pub inline fn clamp(comptime T: type, lower_limit: T, value: T, upper_limit: T) T {
+pub fn clamp(comptime T: type, lower_limit: T, value: T, upper_limit: T) callconv(.Inline) T {
     if (value < lower_limit) {
         return lower_limit;
     }
@@ -173,8 +172,7 @@ pub fn drawRectInPixels(buffer: GameRenderBuffer, x0: u32, y0: u32, x1: u32, y1:
         }
     }
 }
-
-inline fn calculateAspectMultipler(buffer: GameRenderBuffer) f32 {
+fn calculateAspectMultipler(buffer: GameRenderBuffer) callconv(.Inline) f32 {
     var aspect_multiplier = @intToFloat(f32, buffer.height);
     if (@intToFloat(f32, buffer.width) / @intToFloat(f32, buffer.height) < 1.77) {
         aspect_multiplier = @intToFloat(f32, buffer.width) / 1.77;
@@ -242,8 +240,7 @@ fn lerpColor(a: u32, t: f32, b: u32) u32 {
     var result = makeColor(red, green, blue);
     return result;
 }
-
-pub inline fn makeColor(r: u8, g: u8, b: u8) u32 {
+pub fn makeColor(r: u8, g: u8, b: u8) callconv(.Inline) u32 {
     return (@intCast(u32, b) << 0) | (@intCast(u32, g) << 8) | (@intCast(u32, r) << 16);
 }
 
